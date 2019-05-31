@@ -50,6 +50,7 @@ my $dbpwd = 'ocs';
 my $db = 'ocsweb';
 my $dbp = '3306';
 my $dbsocket = '';
+my $db_config_file = "/etc/ocsinventory/dbconfig.inc.php";
 
 #
 my %xml;
@@ -137,6 +138,44 @@ my $date = localtime();
 my $request;
 my $row;
 my $dbparams = {};
+
+sub get_config_val
+{
+   my ($line) = @_;
+   my $val = "";
+   my @buf = split (',', $line);
+
+   if (length $buf[1])
+   {
+      # get value between quotes
+      $val = $buf[1];
+      $val =~ s/[ ");]//g;
+   }
+
+   return ($val);
+}
+
+open (FI, "<$db_config_file") || die ("unable to open DB config $db_config_file");
+while (<FI>)
+{
+   my $line = $_;
+   chomp ($line);
+
+   if ($line =~ m/DB_NAME/)
+   {
+      $db = get_config_val ($line);
+   }
+   if ($line =~ m/PSWD_BASE/)
+   {
+      $dbpwd = get_config_val ($line);
+   }
+   if ($line =~ m/COMPTE_BASE/)
+   {
+      $dbuser = get_config_val ($line);
+   }
+}
+close(FI);
+
 
 $dbparams->{'mysql_socket'} = $dbsocket if $dbsocket;
 
